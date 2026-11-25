@@ -53,20 +53,21 @@ button,input,select,textarea{font:inherit; color:inherit}
 #intro{position:fixed; inset:0; z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px;
   background:var(--ivory); transition:opacity 1.1s ease, visibility 1.1s; padding:24px}
 #intro.gone{opacity:0; visibility:hidden}
-.intro-line{font-family:var(--caps); letter-spacing:.32em; font-size:12px; color:var(--gold-deep); text-align:center; opacity:.85}
+.intro-line{font-family:var(--caps); letter-spacing:.32em; font-size:12px; color:var(--gold-deep); text-align:center; opacity:.85; transition:opacity .5s}
+#intro:has(.env.open) :is(.intro-line,.tap){opacity:0; animation:none; transition:opacity .5s} /* flap covers the heading; seal is gone */
 .env{position:relative; width:min(86vw,420px); aspect-ratio:1.42; perspective:1400px; filter:drop-shadow(0 18px 28px var(--shadow))}
 .env .back{position:absolute; inset:0; background:linear-gradient(160deg,#F7EFDF,#EADDC4); border-radius:6px}
 .env .liner{position:absolute; inset:6px 6px 40% 6px; clip-path:polygon(0 0,100% 0,50% 100%); opacity:.9;
   background:#F3E7CF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='22'%3E%3Cpath d='M0 11l7-7 7 7 7-7 7 7M0 18l7-7 7 7 7-7 7 7' fill='none' stroke='%23C39C55' stroke-width='.9' opacity='.75'/%3E%3Ccircle cx='14' cy='4' r='1.1' fill='%23C39C55'/%3E%3C/svg%3E")}
 .env .card{position:absolute; left:7%; right:7%; top:8%; height:84%; background:var(--pearl); border:1px solid var(--line); border-radius:3px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; transition:transform 1.3s cubic-bezier(.22,.8,.25,1) .9s}
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; z-index:2}
 .env .card::before{content:""; position:absolute; inset:7px; border:1px solid rgba(184,146,74,.35)}
-.env .card .n{font-family:var(--script); font-size:clamp(26px,7vw,38px); line-height:1}
+.env .card .n{font-family:var(--script); font-size:clamp(20px,6vw,32px); line-height:1.1; white-space:nowrap; color:#A07A36} /* no .foil here: it clips the script swashes */
 .env .card small{font-family:var(--caps); font-size:10px; letter-spacing:.3em; color:var(--gold-deep)}
 .env .pocket{position:absolute; inset:0; pointer-events:none; z-index:3}
 .env .pocket svg{width:100%; height:100%; display:block}
 .env .flap{position:absolute; left:0; right:0; top:0; height:58%; transform-origin:50% 0; transform-style:preserve-3d;
-  transition:transform 1s cubic-bezier(.6,0,.3,1) .35s; z-index:4}
+  transition:transform 1s cubic-bezier(.4,0,.2,1) .3s, opacity .9s ease .3s; z-index:4}
 .env .flap .f, .env .flap .b{position:absolute; inset:0; clip-path:polygon(0 0,100% 0,50% 100%); backface-visibility:hidden}
 .env .flap .f{background:linear-gradient(180deg,#F5ECDA,#EBDDC2); }
 .env .flap .f::after{content:""; position:absolute; inset:0; clip-path:polygon(0 0,100% 0,50% 100%);
@@ -80,11 +81,17 @@ button,input,select,textarea{font:inherit; color:inherit}
 .tap{font-style:italic; color:var(--gold-ink); font-size:18px; animation:breathe 2.6s ease-in-out infinite}
 @keyframes breathe{50%{opacity:.45}}
 .env.open .seal{opacity:0; transform:translate(-50%,-50%) scale(.6); pointer-events:none; animation:none}
-.env.open .flap{transform:rotateX(180deg)}
+.env.open .flap{transform:translateY(-10%); opacity:0}
 .env.open .flap-edge{opacity:0}
 .env.raise .flap{z-index:1}
-.env.raise .card{transform:translateY(-46%)}
-.env .card{z-index:2}
+/* card: slide fully out of the pocket, then come forward in front of it */
+.env.raise .card{animation:pull 2.6s forwards; box-shadow:0 14px 30px -12px var(--shadow)}
+@keyframes pull{
+  0%{transform:translateY(0); z-index:2; animation-timing-function:cubic-bezier(.4,0,.2,1)}
+  45%{transform:translateY(-108%); z-index:2}
+  46%{transform:translateY(-108%); z-index:7; animation-timing-function:cubic-bezier(.4,0,.2,1)}
+  100%{transform:translateY(-4%) scale(1.06); z-index:7}
+}
 
 /* ---------- page / card ---------- */
 main{max-width:600px; margin:0 auto; padding:18px 14px 120px}
@@ -320,9 +327,9 @@ footer{position:relative; z-index:3; text-align:center; padding:30px 10px 26px}
     <div class="liner"></div>
     <div class="card" aria-hidden="true">
       <svg width="22" height="36" viewBox="-30 -50 60 100"><use href="#cross" x="-30" y="-50" width="60" height="100"/></svg>
-      <div class="n foil" data-k="bride"></div>
+      <div class="n" data-k="bride"></div>
       <small>&amp;</small>
-      <div class="n foil" data-k="groom"></div>
+      <div class="n" data-k="groom"></div>
     </div>
     <div class="pocket">
       <svg viewBox="0 0 142 100" preserveAspectRatio="none">
@@ -634,7 +641,7 @@ const V = {
   day: fmt({day:"2-digit"}) || CONFIG.day,
   month: fmt({month:"long"}) || CONFIG.month,
   year: fmt({year:"numeric"}) || CONFIG.year,
-  ceremonyTime: fmt({hour:"numeric", minute:"2-digit"}) || CONFIG.ceremonyTime,
+  ceremonyTime: fmt({hour:"numeric", minute:"2-digit", hour12:true}) || CONFIG.ceremonyTime,
   church: CONFIG.church, churchAddress: CONFIG.churchAddress,
   reception: CONFIG.reception, receptionAddress: CONFIG.receptionAddress
 };
@@ -657,14 +664,14 @@ function openInvite(){
   if (env.classList.contains("open")) return;
   env.classList.add("open");
   startMusic();
-  setTimeout(() => env.classList.add("raise"), 1000);
+  setTimeout(() => env.classList.add("raise"), 900);
   setTimeout(() => {
     $("#intro").classList.add("gone");
     document.body.classList.remove("locked");
     document.body.classList.add("play");
     $("#music").classList.add("show");
     burst(window.innerWidth / 2, window.innerHeight * .35, 26);
-  }, 2700);
+  }, 4300); // raise (0.9s) + pull (2.6s) + a beat to read the names
 }
 $("#seal").addEventListener("click", openInvite);
 
